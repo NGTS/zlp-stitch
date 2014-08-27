@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import division, print_function, absolute_import
+
 import argparse
 import fitsio
+import numpy as np
 
 def main(args):
     pass
