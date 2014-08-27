@@ -9,8 +9,8 @@ ensure_link() {
 }
 
 setup_test_files() {
-    ensure_link test1.fits /ngts/pipedev/ParanalOutput/02-wasp6b.fits
-    ensure_link test2.fits /ngts/pipedev/ParanalOutput/06-wasp6b.fits
+    ensure_link test1.fits /ngts/pipedev/ParanalOutput/03-wasp103b.fits
+    ensure_link test2.fits /ngts/pipedev/ParanalOutput/08-wasp103b.fits
 }
 
 run_script() {
