@@ -42,7 +42,52 @@ def compute_final_statistics(fname):
       original_catalogue.write(out_catalogue_data)
 
 def main(args):
-    pass
+    file_handles = [fitsio.FITS(fname) for fname in args.file]
+
+    with fitsio.FITS(args.output, 'rw', clobber=True) as outfile:
+        outfile.write(file_handles[0]['catalogue'].read(),
+                      header={'extname': 'CATALOGUE'})
+        for hdu in file_handles[0]:
+            hdu_name = hdu.get_extname()
+            exttype = hdu.get_exttype()
+
+            if hdu_name == 'PRIMARY':
+                continue
+
+            if exttype == 'IMAGE_HDU':
+                print("Found image {}".format(hdu_name))
+
+                for fitsfile in file_handles:
+                    in_data = fitsfile[hdu_name].read()
+                    print('in_data.shape: {}'.format(in_data.shape))
+                    try:
+                        out_data = np.concatenate([out_data, in_data], axis=1)
+                    except NameError:
+                        out_data = in_data
+                    print('out_data.shape: {}'.format(out_data.shape))
+
+                outfile.write(out_data, header={'extname': hdu_name})
+                del out_data
+
+            else:
+                print("Found catalogue {}".format(hdu_name))
+
+                if hdu_name == 'IMAGELIST':
+                    for fitsfile in file_handles:
+                        in_data = fitsfile[hdu_name].read()
+                        print(in_data.shape)
+                        try:
+                            out_data = np.concatenate([out_data, in_data])
+                        except NameError:
+                            out_data = in_data
+
+                    outfile.write(out_data, header={'extname': hdu_name})
+                    del out_data
+                elif hdu_name != 'CATALOGUE':
+                    raise RuntimeError("Unknown hdu catalogue: {}".format(hdu_name))
+
+    compute_final_statistics(args.output)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
