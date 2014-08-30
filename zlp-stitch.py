@@ -57,7 +57,8 @@ def main(args):
             if exttype == 'IMAGE_HDU':
                 print("Found image {}".format(hdu_name))
 
-                for fitsfile in file_handles:
+                for fitsfile, name in zip(file_handles, args.file):
+                    print("Reading data from file {}".format(name))
                     in_data = fitsfile[hdu_name].read()
                     print('in_data.shape: {}'.format(in_data.shape))
                     try:
