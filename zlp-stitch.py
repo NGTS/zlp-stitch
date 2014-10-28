@@ -47,6 +47,17 @@ def get_exposure_time_indices(file_handle, exptime):
     return exptime_data == exptime
 
 
+def filter_by_exposure_time(data, file_handle, exptime, axis=0):
+    if exptime is not None:
+        ind = get_exposure_time_indices(file_handle, exptime)
+        if axis == 0:
+            return data[ind]
+        else:
+            return data[:, ind]
+    else:
+        return data
+
+
 def main(args):
     file_handles = [fitsio.FITS(fname) for fname in args.file]
 
@@ -72,9 +83,8 @@ def main(args):
                 for fitsfile, name in zip(file_handles, args.file):
                     print("Reading data from file {}".format(name))
                     in_data = fitsfile[hdu_name].read()
-                    if args.exptime is not None:
-                        ind = get_exposure_time_indices(fitsfile, args.exptime)
-                        in_data = in_data[:, ind]
+                    in_data = filter_by_exposure_time(in_data, fitsfile, args.exptime,
+                                                      axis=1)
                     print('in_data.shape: {}'.format(in_data.shape))
                     try:
                         out_data = np.concatenate([out_data, in_data], axis=1)
@@ -91,9 +101,7 @@ def main(args):
                 if hdu_name == 'IMAGELIST':
                     for fitsfile in file_handles:
                         in_data = fitsfile[hdu_name].read()
-                        if args.exptime is not None:
-                            ind = get_exposure_time_indices(fitsfile, args.exptime)
-                            in_data = in_data[ind]
+                        in_data = filter_by_exposure_time(in_data, fitsfile, args.exptime)
                         print(in_data.shape)
                         try:
                             out_data = np.concatenate([out_data, in_data])
