@@ -47,9 +47,15 @@ def main(args):
     with fitsio.FITS(args.output, 'rw', clobber=True) as outfile:
         outfile.write(file_handles[0]['catalogue'].read(),
                       header={'extname': 'CATALOGUE'})
+
         for hdu in file_handles[0]:
             hdu_name = hdu.get_extname()
             exttype = hdu.get_exttype()
+
+            if not hdu_name:
+                continue
+
+            print('{}: {}'.format(hdu_name, exttype))
 
             if hdu_name == 'PRIMARY':
                 continue
