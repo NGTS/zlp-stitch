@@ -41,6 +41,12 @@ def compute_final_statistics(fname):
                             for key in keys }
       original_catalogue.write(out_catalogue_data)
 
+
+def get_exposure_time_indices(file_handle, exptime):
+    exptime_data = file_handle['imagelist']['exposure'].read()
+    return exptime_data == exptime
+
+
 def main(args):
     file_handles = [fitsio.FITS(fname) for fname in args.file]
 
@@ -66,6 +72,9 @@ def main(args):
                 for fitsfile, name in zip(file_handles, args.file):
                     print("Reading data from file {}".format(name))
                     in_data = fitsfile[hdu_name].read()
+                    if args.exptime is not None:
+                        ind = get_exposure_time_indices(fitsfile, args.exptime)
+                        in_data = in_data[:, ind]
                     print('in_data.shape: {}'.format(in_data.shape))
                     try:
                         out_data = np.concatenate([out_data, in_data], axis=1)
@@ -82,6 +91,9 @@ def main(args):
                 if hdu_name == 'IMAGELIST':
                     for fitsfile in file_handles:
                         in_data = fitsfile[hdu_name].read()
+                        if args.exptime is not None:
+                            ind = get_exposure_time_indices(fitsfile, args.exptime)
+                            in_data = in_data[ind]
                         print(in_data.shape)
                         try:
                             out_data = np.concatenate([out_data, in_data])
@@ -99,5 +111,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs='+', help='Files to condense')
+    parser.add_argument('-e', '--exptime', help='Pick a specific exposure time',
+                        required=False, type=float)
     parser.add_argument('-o', '--output', required=True, help='Output filename')
     main(parser.parse_args())
