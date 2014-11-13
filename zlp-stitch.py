@@ -11,6 +11,32 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
 logger = logging.getLogger(__name__)
 
+def perform_post_processing(outfile):
+    sort_by_hjd(outfile)
+    compute_final_statistics(outfile)
+
+def sort_by_hjd(filename):
+    ignore_list = ['catalogue', 'primary', '']
+    logger.info('Sorting by hjd')
+
+    with fitsio.FITS(filename, 'rw') as infile:
+        tmid = infile['imagelist']['tmid'].read()
+        ind = np.argsort(tmid)
+        for hdu in infile:
+            logger.debug('Found hdu: %s', hdu.get_extname())
+            if hdu.get_extname().strip().lower() == 'imagelist':
+                data = hdu.read()
+                data = data[ind]
+                hdu.write(data)
+                del data
+
+            elif hdu.get_extname().strip().lower() not in ignore_list:
+                data = hdu.read()
+                data = data[:, ind]
+                hdu.write(data)
+                del data
+
+    logger.info('File sorted')
 
 def compute_final_statistics(fname):
   '''
@@ -42,11 +68,11 @@ def compute_final_statistics(fname):
           else:
               new_data['FLUX_MEAN'] = np.nan
 
-          out_catalogue_data.append(new_data)
+            out_catalogue_data.append(new_data)
 
-      out_catalogue_data = { key: np.array([row[key] for row in out_catalogue_data])
-                            for key in keys }
-      original_catalogue.write(out_catalogue_data)
+        out_catalogue_data = { key: np.array([row[key] for row in out_catalogue_data])
+                                for key in keys }
+        original_catalogue.write(out_catalogue_data)
     logger.info('Statistics computed')
 
 
@@ -122,7 +148,7 @@ def main(args):
                 elif hdu_name != 'CATALOGUE':
                     raise RuntimeError("Unknown hdu catalogue: {}".format(hdu_name))
 
-    compute_final_statistics(args.output)
+    perform_post_processing(args.output)
 
 
 if __name__ == '__main__':
