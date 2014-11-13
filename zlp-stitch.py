@@ -19,12 +19,14 @@ def compute_final_statistics(fname):
 
   This function is destructive - it changes the output file
   '''
+  logger.info('Computing final statistics')
   with fitsio.FITS(fname, 'rw') as outfile:
       flux = outfile['flux'].read()
       fluxerr = outfile['fluxerr'].read()
       original_catalogue = outfile['catalogue']
       keys = original_catalogue.get_colnames()
       original_catalogue_data = original_catalogue.read()
+      logger.debug('Data read')
 
       out_catalogue_data = []
       for (lc, lcerr, cat_row) in zip(flux, fluxerr, original_catalogue_data):
@@ -45,6 +47,7 @@ def compute_final_statistics(fname):
       out_catalogue_data = { key: np.array([row[key] for row in out_catalogue_data])
                             for key in keys }
       original_catalogue.write(out_catalogue_data)
+    logger.info('Statistics computed')
 
 
 def get_exposure_time_indices(file_handle, exptime):
@@ -64,54 +67,55 @@ def filter_by_exposure_time(data, file_handle, exptime, axis=0):
 
 
 def main(args):
+    logger.info('Merging %s files', len(args.file))
     file_handles = [fitsio.FITS(fname) for fname in args.file]
 
     with fitsio.FITS(args.output, 'rw', clobber=True) as outfile:
         outfile.write(file_handles[0]['catalogue'].read(),
                       header={'extname': 'CATALOGUE'})
+        logger.debug('Catalogue written')
 
         for hdu in file_handles[0]:
             hdu_name = hdu.get_extname()
             exttype = hdu.get_exttype()
 
-            if not hdu_name:
+            if hdu_name in {'', 'PRIMARY'}:
+                logger.debug('Found Primary HDU, skipping')
                 continue
 
-            print('{}: {}'.format(hdu_name, exttype))
-
-            if hdu_name == 'PRIMARY':
-                continue
+            logger.debug('Stacking hdu %s: %s', hdu_name, exttype)
 
             if exttype == 'IMAGE_HDU':
-                print("Found image {}".format(hdu_name))
+                logger.debug("Found image")
 
                 for fitsfile, name in zip(file_handles, args.file):
-                    print("Reading data from file {}".format(name))
+                    logger.info("Reading data from file {}".format(name))
                     in_data = fitsfile[hdu_name].read()
                     in_data = filter_by_exposure_time(in_data, fitsfile, args.exptime,
                                                       axis=1)
-                    print('in_data.shape: {}'.format(in_data.shape))
+                    logger.debug('in_data.shape: %s', in_data.shape)
                     try:
                         out_data = np.concatenate([out_data, in_data], axis=1)
                     except NameError:
                         out_data = in_data
-                    print('out_data.shape: {}'.format(out_data.shape))
+                    logger.debug('out_data.shape: %s', out_data.shape)
 
                 outfile.write(out_data, header={'extname': hdu_name})
                 del out_data
 
             else:
-                print("Found catalogue {}".format(hdu_name))
+                logger.info("Found catalogue")
 
                 if hdu_name == 'IMAGELIST':
                     for fitsfile in file_handles:
                         in_data = fitsfile[hdu_name].read()
                         in_data = filter_by_exposure_time(in_data, fitsfile, args.exptime)
-                        print(in_data.shape)
+                        logger.debug('in_data.shape: %s', in_data.shape)
                         try:
                             out_data = np.concatenate([out_data, in_data])
                         except NameError:
                             out_data = in_data
+                        logger.debug('out_data.shape: %s', out_data.shape)
 
                     outfile.write(out_data, header={'extname': hdu_name})
                     del out_data
