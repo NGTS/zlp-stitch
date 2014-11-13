@@ -6,6 +6,11 @@ from __future__ import division, print_function, absolute_import
 import argparse
 import fitsio
 import numpy as np
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
+logger = logging.getLogger(__name__)
+
 
 def compute_final_statistics(fname):
   '''
