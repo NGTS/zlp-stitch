@@ -74,10 +74,10 @@ def summarise(mapping):
 
 
 def build_zlp_stitch_command(field, camera_id, files):
-    python_path = os.path.realpath(os.path.join(
-        os.path.dirname(__file__), 'venv', 'bin', 'python'))
-    script_path = os.path.realpath(os.path.join(
-        os.path.dirname(__file__), 'zlp-stitch.py'))
+    python_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'venv', 'bin',
+                                                'python'))
+    script_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                                'zlp-stitch.py'))
     output_path = os.path.join('/', 'ngts', 'pipedev', 'ParanalOutput', 'per_field')
     output_stub = '{field}-{camera_id}.fits'.format(field=field, camera_id=camera_id)
     output_path = os.path.join(output_path, output_stub)

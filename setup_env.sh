@@ -11,7 +11,7 @@ main() {
     test -x "${PIP}" || error "Cannot find pip, please create virtual environment"
 
     ${CONDA} install astropy numpy
-    ${PIP} install fitsio
+    ${PIP} install fitsio joblib
 
 }
 
