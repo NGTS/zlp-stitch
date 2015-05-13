@@ -10,6 +10,7 @@ import re
 import joblib
 from collections import defaultdict
 from astropy.io import fits
+import sys
 
 logger = setup_logging('stitch-all')
 
@@ -72,19 +73,47 @@ def summarise(mapping):
         logger.info('%s => %d files', key, len(mapping[key]))
 
 
-def main(args):
-    if args.verbose:
-        logger.setLevel('DEBUG')
+def build_zlp_stitch_command(field, camera_id, files):
+    python_path = os.path.realpath(os.path.join(
+        os.path.dirname(__file__), 'venv', 'bin', 'python'))
+    script_path = os.path.realpath(os.path.join(
+        os.path.dirname(__file__), 'zlp-stitch.py'))
+    output_path = os.path.join('/', 'ngts', 'pipedev', 'ParanalOutput', 'per_field')
+    output_stub = '{field}-{camera_id}.fits'.format(field=field, camera_id=camera_id)
+    output_path = os.path.join(output_path, output_stub)
+    cmd = map(str, [python_path, script_path, '-o', output_path])
+    cmd.extend(map(str, files))
+    sp.check_call(cmd)
 
+
+def spawn_job(field, camera_id, files):
+    zlp_stitch_command = build_zlp_stitch_command(field=field,
+                                                  camera_id=camera_id,
+                                                  files=files)
+
+
+@memory.cache
+def build_field_camera_mapping():
     mapping = defaultdict(list)
     for path in get_available_field_cameras():
         logger.info('Building {}'.format(path))
         match = regex.search(path)
         field = match.group('field')
         camera_id = int(match.group('camera_id'))
-        mapping[(field, camera_id)].append(path)
+        mapping[(field, camera_id)].append(photom_file_name(path))
 
     summarise(mapping)
+    return mapping
+
+
+def main(args):
+    if args.verbose:
+        logger.setLevel('DEBUG')
+
+    mapping = build_field_camera_mapping()
+    for key in mapping:
+        field, camera_id = key
+        spawn_job(field=field, camera_id=camera_id, files=mapping[key])
 
 
 if __name__ == '__main__':
