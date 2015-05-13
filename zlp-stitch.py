@@ -8,8 +8,8 @@ import fitsio
 import numpy as np
 import logging
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
+logging.basicConfig(level='INFO',
+                    format='%(levelname)7s %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -100,6 +100,9 @@ def filter_by_exposure_time(data, file_handle, exptime, axis=0):
 
 
 def main(args):
+    if args.verbose:
+        logger.setLevel('DEBUG')
+    logger.debug(args)
     logger.info('Merging %s files', len(args.file))
     file_handles = [fitsio.FITS(fname) for fname in args.file]
 
@@ -122,7 +125,8 @@ def main(args):
                 logger.debug("Found image")
 
                 for fitsfile, name in zip(file_handles, args.file):
-                    logger.info("Reading data from file {}".format(name))
+                    logger.info("{filename}:{hdu}".format(
+                        filename=name, hdu=hdu_name))
                     in_data = fitsfile[hdu_name].read()
                     in_data = filter_by_exposure_time(in_data, fitsfile, args.exptime,
                                                       axis=1)
@@ -166,4 +170,5 @@ if __name__ == '__main__':
                         required=False,
                         type=float)
     parser.add_argument('-o', '--output', required=True, help='Output filename')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose logging')
     main(parser.parse_args())
