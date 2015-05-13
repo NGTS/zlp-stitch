@@ -8,12 +8,15 @@ import fitsio
 import numpy as np
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
 logger = logging.getLogger(__name__)
+
 
 def perform_post_processing(outfile):
     sort_by_hjd(outfile)
     compute_final_statistics(outfile)
+
 
 def sort_by_hjd(filename):
     ignore_list = ['catalogue', 'primary', '']
@@ -38,10 +41,11 @@ def sort_by_hjd(filename):
 
     logger.info('File sorted')
 
+
 def compute_final_statistics(fname):
     '''
-    Given a filename, for each aperture in the file compute the number of points in the lightcurve
-    which are not NaNs
+    Given a filename, for each aperture in the file compute the number of points
+    in the lightcurve which are not NaNs
 
     This function is destructive - it changes the output file
     '''
@@ -59,7 +63,7 @@ def compute_final_statistics(fname):
             ind = np.isfinite(lc)
             npts = lc[ind].size
 
-            new_data = { key: value for (key, value) in zip(keys, cat_row) }
+            new_data = {key: value for (key, value) in zip(keys, cat_row)}
             new_data['NPTS'] = npts
 
             if npts > 0:
@@ -70,8 +74,10 @@ def compute_final_statistics(fname):
 
             out_catalogue_data.append(new_data)
 
-        out_catalogue_data = { key: np.array([row[key] for row in out_catalogue_data])
-                                for key in keys }
+        out_catalogue_data = {
+            key: np.array([row[key] for row in out_catalogue_data])
+            for key in keys
+        }
         original_catalogue.write(out_catalogue_data)
 
     logger.info('Statistics computed')
@@ -155,7 +161,9 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs='+', help='Files to condense')
-    parser.add_argument('-e', '--exptime', help='Pick a specific exposure time',
-                        required=False, type=float)
+    parser.add_argument('-e', '--exptime',
+                        help='Pick a specific exposure time',
+                        required=False,
+                        type=float)
     parser.add_argument('-o', '--output', required=True, help='Output filename')
     main(parser.parse_args())
