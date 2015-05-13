@@ -133,6 +133,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    description = '''Stitch all available NGTS observations together for a single
+    field and camera'''
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
     main(parser.parse_args())
