@@ -2,3 +2,4 @@
 *.[oe][0-9]*
 *.txt
 *.bak
+.ipynb_checkpoints
