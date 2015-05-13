@@ -7,10 +7,37 @@ import argparse
 import fitsio
 import numpy as np
 import logging
+import os
+import logging.config
+import json
 
-logging.basicConfig(level='INFO',
-                    format='%(levelname)7s %(message)s')
-logger = logging.getLogger(__name__)
+
+def setup_logging():
+    log_path = os.path.join(os.path.dirname(__file__), 'logging.json')
+    with open(log_path) as infile:
+        log_config = json.load(infile)
+
+    new_config = {}
+    for key in log_config:
+        if key == 'handlers':
+            new_handlers = {}
+            for handler in log_config[key]:
+                if 'filename' in log_config[key][handler].keys():
+                    new = log_config[key][handler].copy()
+                    new['filename'] = os.path.expanduser(new['filename'])
+                    new_handlers[handler] = new
+                else:
+                    new_handlers[handler] = log_config[key][handler]
+            new_config['handlers'] = new_handlers
+        else:
+            new_config[key] = log_config[key]
+
+
+    logging.config.dictConfig(new_config)
+    return logging.getLogger(__name__)
+
+
+logger = setup_logging()
 
 
 def perform_post_processing(outfile):
@@ -125,8 +152,7 @@ def main(args):
                 logger.debug("Found image")
 
                 for fitsfile, name in zip(file_handles, args.file):
-                    logger.info("{filename}:{hdu}".format(
-                        filename=name, hdu=hdu_name))
+                    logger.info("{filename}:{hdu}".format(filename=name, hdu=hdu_name))
                     in_data = fitsfile[hdu_name].read()
                     in_data = filter_by_exposure_time(in_data, fitsfile, args.exptime,
                                                       axis=1)
