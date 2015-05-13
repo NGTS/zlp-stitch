@@ -20,6 +20,7 @@ CHOSEN_FIELDS = {'wasp19b', 'k2_3b', 'ng2000'}
 CHOSEN_CAMERAS = {802, 805, 806}
 
 memory = joblib.Memory(cachedir='.tmp')
+LOGDIR = os.environ.get('LOGDIR', os.path.expanduser('~/var/log'))
 
 
 @memory.cache
@@ -81,15 +82,30 @@ def build_zlp_stitch_command(field, camera_id, files):
     output_path = os.path.join('/', 'ngts', 'pipedev', 'ParanalOutput', 'per_field')
     output_stub = '{field}-{camera_id}.fits'.format(field=field, camera_id=camera_id)
     output_path = os.path.join(output_path, output_stub)
-    cmd = map(str, [python_path, script_path, '-o', output_path])
-    cmd.extend(map(str, files))
-    sp.check_call(cmd)
+    cmd = [python_path, script_path, '-o', output_path]
+    cmd.extend(files)
+    logger.debug('cmd: %s', ' '.join(cmd))
+    return map(str, cmd)
+
+
+def build_qsub_command(field, camera_id):
+    name = 'stitch-{field}-{camera_id}'.format(field=field, camera_id=camera_id)
+    log_name = os.path.join(LOGDIR, '{}.log'.format(name))
+    return map(str, ['/usr/local/sge/bin/lx-amd64/qsub', '-N', name, '-j', 'yes', '-o',
+                     log_name, '-S', '/bin/bash', '-pe', 'parallel', 1])
 
 
 def spawn_job(field, camera_id, files):
     zlp_stitch_command = build_zlp_stitch_command(field=field,
                                                   camera_id=camera_id,
                                                   files=files)
+    command_string = ['echo',] + zlp_stitch_command
+    submit_command = sp.Popen(command_string, stdout=sp.PIPE)
+
+    qsub_command_string = build_qsub_command(field, camera_id)
+    qsub_env = {'SGE_ROOT': '/usr/local/sge'}
+    sp.check_call(qsub_command_string, stdin=submit_command.stdout, env=qsub_env)
+    submit_command.wait()
 
 
 @memory.cache
