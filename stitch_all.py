@@ -7,7 +7,6 @@ import argparse
 from commonlog import setup_logging
 import os
 import re
-import joblib
 from collections import defaultdict
 from astropy.io import fits
 import sys
@@ -19,11 +18,9 @@ regex = re.compile(r'2015\d{4}-(?P<field>.+)-(?P<camera_id>80\d)$')
 CHOSEN_FIELDS = {'wasp19b', 'k2_3b', 'ng2000'}
 CHOSEN_CAMERAS = {802, 805, 806}
 
-memory = joblib.Memory(cachedir='.tmp')
 LOGDIR = os.environ.get('LOGDIR', os.path.expanduser('~/var/log'))
 
 
-@memory.cache
 def photom_file_name(path):
     cmd = map(str, ['find', path, '-name', 'output.fits'])
     output = sp.check_output(cmd)
@@ -108,7 +105,6 @@ def spawn_job(field, camera_id, files):
     submit_command.wait()
 
 
-@memory.cache
 def build_field_camera_mapping():
     mapping = defaultdict(list)
     for path in get_available_field_cameras():
