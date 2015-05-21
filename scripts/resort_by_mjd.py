@@ -7,12 +7,12 @@ import logging
 from astropy.io import fits
 import numpy as np
 
-
-logging.basicConfig(
-    level='INFO', format='%(levelname)7s %(message)s')
+logging.basicConfig(level='INFO', format='%(levelname)7s %(message)s')
 logger = logging.getLogger(__name__)
 
 IGNORE_HDUS = {'PRIMARY', 'CASUDET'}
+
+
 def resort(filename):
     with fits.open(filename, mode='update') as infile:
         imagelist = infile['imagelist'].data
@@ -31,7 +31,6 @@ def resort(filename):
             infile[name].data = sorted_data[:]
 
 
-
 def main(args):
     if args.verbose:
         logger.setLevel('DEBUG')
@@ -39,7 +38,8 @@ def main(args):
 
     if not args.force:
         raise RuntimeError(
-                'To actually change the file, the -f/--force argument is required')
+            'To actually change the file, the -f/--force argument is required')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
