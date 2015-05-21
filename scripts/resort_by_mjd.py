@@ -14,11 +14,12 @@ IGNORE_HDUS = {'PRIMARY', 'CASUDET'}
 
 
 def resort(filename):
-    with fits.open(filename, mode='update') as infile:
+    with fits.open(filename) as infile:
         imagelist = infile['imagelist'].data
         tmid = imagelist['tmid']
         ind = np.argsort(tmid)
 
+    with fits.open(filename, mode='update') as infile:
         infile['imagelist'].data[:] = imagelist[ind]
 
         images = (hdu for hdu in infile if hdu.is_image)
