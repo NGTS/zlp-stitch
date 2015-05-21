@@ -36,6 +36,7 @@ struct FITSFile {
     ImageDimensions imageDimensions();
     MJDRange mjd_range();
     int colnum(const std::string &name);
+    long nimages();
 
     std::vector<std::pair<std::string, ColumnDefinition> > column_description();
 
@@ -51,6 +52,84 @@ struct FITSFile {
     void check();
 };
 
+template<typename T>
+std::vector<T> readColumn(FITSFile &f, long nrows, int colnum) {
+}
+
+template<>
+std::vector<double> readColumn<double>(FITSFile &f, long nrows, int colnum) {
+    std::vector<double> data(nrows);
+    fits_read_col(f.fptr, TDOUBLE, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template<>
+std::vector<float> readColumn<float>(FITSFile &f, long nrows, int colnum) {
+    std::vector<float> data(nrows);
+    fits_read_col(f.fptr, TFLOAT, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template<>
+std::vector<int> readColumn<int>(FITSFile &f, long nrows, int colnum) {
+    std::vector<int> data(nrows);
+    fits_read_col(f.fptr, TINT, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template<>
+std::vector<long> readColumn<long>(FITSFile &f, long nrows, int colnum) {
+    std::vector<long> data(nrows);
+    fits_read_col(f.fptr, TLONG, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template <typename T>
+void writeColumn(FITSFile *f, std::vector<T> &data, long start, int colnum) {
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<double> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TDOUBLE, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<int> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TINT, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<long> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TLONG, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<float> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TFLOAT, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <typename T>
+void addToColumn(FITSFile &source, FITSFile *dest, long nrows, long start,
+        int source_colnum, int dest_colnum) {
+    std::vector<T> data = readColumn<T>(source, nrows, source_colnum);
+    if (source.status == COL_NOT_FOUND) {
+        source.status = 0;
+        fits_clear_errmsg();
+    } else {
+        source.check();
+        writeColumn<T>(dest, data, start, dest_colnum);
+    }
+}
+
+
+void addToBoolColumn(FITSFile &source, FITSFile *dest, long nrows, long start,
+        int source_colnum, int dest_colnum);
+void addToStringColumn(FITSFile &source, FITSFile *dest, long nrows, long start,
+        int source_colnum, int dest_colnum, const ColumnDefinition &defs);
 
 
 #endif /* end of include guard: FITS_FILE_H */

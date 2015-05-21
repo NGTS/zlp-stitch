@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <map>
+#include <valarray>
 #include <sstream>
 #include <algorithm>
 
@@ -28,13 +29,10 @@ FITSFile* FITSFile::createFile(const string &filename) {
 }
 
 MJDRange FITSFile::mjd_range() {
+    long nrows = nimages();
+    vector<double> mjd(nrows);
     toHDU("IMAGELIST");
     
-    long nrows = 0;
-    fits_get_num_rows(fptr, &nrows, &status);
-    check();
-
-    vector<double> mjd(nrows);
     fits_read_col(fptr, TDOUBLE, colnum("TMID"), 1, 1, nrows, NULL, &mjd[0], NULL, &status);
     check();
 
@@ -74,11 +72,13 @@ void FITSFile::toHDU(int index) {
 int FITSFile::colnum(const string &name) {
     int colnum = -1;
     fits_get_colnum(fptr, CASEINSEN, (char*)name.c_str(), &colnum, &status);
-    check();
-    if (colnum == -1) {
-        throw runtime_error("Invalid column number found");
+    if (status == COL_NOT_FOUND) {
+        status = 0;
+        fits_clear_errmsg();
+        return -1;
+    } else {
+        return colnum;
     }
-    return colnum;
 }
 
 ImageDimensions FITSFile::imageDimensions() {
@@ -169,4 +169,49 @@ void FITSFile::addBinaryTable(const string &name, const map<string, ColumnDefini
     }
     fits_create_tbl(fptr, BINARY_TBL, nrows, column_description.size(), &column_names[0], &column_types[0], NULL, (char*)name.c_str(), &status);
     check();
+}
+
+long FITSFile::nimages() {
+    long nrows = -1;
+    toHDU("IMAGELIST");
+    check();
+    fits_get_num_rows(fptr, &nrows, &status);
+    check();
+    return nrows;
+}
+
+void addToBoolColumn(FITSFile &source, FITSFile *dest, long nrows, long start,
+        int source_colnum, int dest_colnum) {
+    std::vector<int> data(nrows);
+    fits_read_col(source.fptr, TLOGICAL, source_colnum, 1, 1, nrows, NULL, &data[0], NULL, &source.status);
+    if (source.status == COL_NOT_FOUND) {
+        source.status = 0;
+        fits_clear_errmsg();
+    } else {
+        source.check();
+        fits_write_col(dest->fptr, TLOGICAL, dest_colnum, start + 1, 1, data.size(), &data[0], &dest->status);
+        dest->check();
+    }
+}
+
+void addToStringColumn(FITSFile &source, FITSFile *dest, long nrows, long start,
+        int source_colnum, int dest_colnum, const ColumnDefinition &defs) {
+    valarray<char*> cptr(nrows);
+    for(int i=0; i<nrows; i++) {
+        cptr[i]=new char[defs.width+1];
+    }
+    fits_read_col_str(source.fptr, source_colnum, 1, 1, nrows, NULL,
+            &cptr[0], NULL, &source.status);
+    if (source.status == COL_NOT_FOUND) {
+        source.status = 0;
+        fits_clear_errmsg();
+    } else {
+        source.check();
+        fits_write_col(dest->fptr, TSTRING, dest_colnum, start + 1, 1, nrows, &cptr[0], &dest->status);
+        dest->check();
+    }
+
+    for (int i=0; i<nrows; i++) {
+        delete cptr[i];
+    }
 }

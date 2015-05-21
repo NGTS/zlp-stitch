@@ -84,9 +84,14 @@ set<string> get_image_names(const vector<string> &files) {
         for (int i=2; i<nhdu; i++) {
             char buf[FLEN_VALUE];
             source.toHDU(i);
-            fits_read_key(source.fptr, TSTRING, "EXTNAME", buf, NULL, &source.status);
+            int hdutype = -1;
+            fits_get_hdu_type(source.fptr, &hdutype, &source.status);
             source.check();
-            out.insert(buf);
+            if (hdutype == IMAGE_HDU) {
+                fits_read_key(source.fptr, TSTRING, "EXTNAME", buf, NULL, &source.status);
+                source.check();
+                out.insert(buf);
+            }
         }
     }
     return out;
@@ -97,10 +102,63 @@ struct FitsUpdater {
             const map<string, ColumnDefinition> &imagelist_columns, 
             const map<string, ColumnDefinition> &catalogue_columns,
             const set<string> image_names) :
-    dimensions(dim), imagelist_columns(imagelist_columns), catalogue_columns(catalogue_columns), image_names(image_names), outfile(NULL) {}
+    dimensions(dim), imagelist_columns(imagelist_columns), catalogue_columns(catalogue_columns),
+    image_names(image_names), outfile(NULL), currentImage(0) {}
     
     
-    void update(const FITSFile &f, int counter, int image) {
+    void updateImagelist(FITSFile &f) {
+        outfile->toHDU("IMAGELIST");
+        f.toHDU("IMAGELIST");
+        long nrows = f.nimages();
+        for (auto column: imagelist_columns) {
+            int source_colnum = f.colnum(column.first);
+            int dest_colnum = outfile->colnum(column.first);
+
+            if (source_colnum == -1) {
+                continue;
+            }
+
+            switch (column.second.type) {
+                case TDOUBLE:
+                    addToColumn<double>(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum);
+                    break;
+                case TFLOAT:
+                    addToColumn<float>(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum);
+                    break;
+                case TINT:
+                    addToColumn<int>(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum);
+                    break;
+                case TLONG:
+                    addToColumn<long>(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum);
+                    break;
+                case TLONGLONG:
+                    addToColumn<long>(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum);
+                    break;
+                case TLOGICAL:
+                    addToBoolColumn(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum);
+                    break;
+                case TSTRING:
+                    addToStringColumn(f, outfile, nrows, currentImage,
+                            source_colnum, dest_colnum, column.second);
+                    break;
+                default:
+                    cout << "Not implemented: " << column.first << " " << column.second.type << endl;
+                    break;
+            }
+        }
+    }
+
+    void updateImages(FITSFile &f) {
+        /* for (auto image: image_names) { */
+        /*     f.toHDU(image); */
+        /*     outfile->toHDU(image); */
+        /* } */
     }
 
     void updateCatalogue(FITSFile &f) {
@@ -132,11 +190,11 @@ struct FitsUpdater {
         FITSFile first(files[0]);
         updateCatalogue(first);
 
-        int i = 0, image = 0;
         for (auto filename: files) {
             FITSFile source(filename);
-            update(source, i, image);
-            i++;
+            updateImagelist(source);
+            updateImages(source);
+            currentImage += source.nimages();
         }
     }
 
@@ -151,6 +209,7 @@ struct FitsUpdater {
     map<string, ColumnDefinition> imagelist_columns;
     map<string, ColumnDefinition> catalogue_columns;
     set<string> image_names;
+    int currentImage;
 };
 
 void stitch(const vector<string> &files, const string &output) {

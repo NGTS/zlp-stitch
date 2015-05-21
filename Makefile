@@ -14,5 +14,5 @@ all: $(RUN)
 $(RUN): $(OBJECTS)
 	$(CXX) $^ -o $@ $(LDFLAGS) $(COMMON)
 
-%.o: %.cpp
+%.o: %.cpp $(HEADERS) Makefile
 	$(CXX) -c $< -o $@ $(CFLAGS) $(COMMON)
