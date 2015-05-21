@@ -12,6 +12,14 @@ logging.basicConfig(
     level='INFO', format='%(levelname)7s %(message)s')
 logger = logging.getLogger(__name__)
 
+def resort(filename):
+    with fits.open(filename, mode='update') as infile:
+        imagelist = infile['imagelist'].data
+        tmid = imagelist['tmid']
+        ind = np.argsort(tmid)
+
+        infile['imagelist'].data = imagelist[ind]
+
 
 def main(args):
     if args.verbose:
