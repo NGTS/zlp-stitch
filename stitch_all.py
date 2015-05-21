@@ -75,14 +75,11 @@ def summarise(mapping):
 
 
 def build_zlp_stitch_command(field, camera_id, files):
-    python_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'venv', 'bin',
-                                                'python'))
-    script_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                                'zlp-stitch.py'))
+    binary_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'zlp-stitch'))
     output_path = os.path.join('/', 'ngts', 'pipedev', 'ParanalOutput', 'per_field')
     output_stub = '{field}-{camera_id}.fits'.format(field=field, camera_id=camera_id)
     output_path = os.path.join(output_path, output_stub)
-    cmd = [python_path, script_path, '-o', output_path]
+    cmd = [binary_path, '-o', output_path]
     cmd.extend(files)
     logger.debug('cmd: %s', ' '.join(cmd))
     return map(str, cmd)
@@ -92,20 +89,18 @@ def build_qsub_command(field, camera_id):
     name = 'stitch-{field}-{camera_id}'.format(field=field, camera_id=camera_id)
     log_name = os.path.join(LOGDIR, '{}.log'.format(name))
     return map(str, ['/usr/local/sge/bin/lx-amd64/qsub', '-N', name, '-j', 'yes', '-o',
-                     log_name, '-S', '/bin/bash', '-pe', 'parallel', 1])
+                     log_name, '-b', 'y', '-pe', 'parallel', 1])
 
 
 def spawn_job(field, camera_id, files):
     zlp_stitch_command = build_zlp_stitch_command(field=field,
                                                   camera_id=camera_id,
                                                   files=files)
-    command_string = ['echo',] + zlp_stitch_command
-    submit_command = sp.Popen(command_string, stdout=sp.PIPE)
 
     qsub_command_string = build_qsub_command(field, camera_id)
+    command_string = qsub_command_string + zlp_stitch_command
     qsub_env = {'SGE_ROOT': '/usr/local/sge'}
-    sp.check_call(qsub_command_string, stdin=submit_command.stdout, env=qsub_env)
-    submit_command.wait()
+    sp.check_call(command_string, env=qsub_env)
 
 
 def build_field_camera_mapping():
