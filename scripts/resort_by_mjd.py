@@ -22,11 +22,11 @@ def resort(filename):
         infile['imagelist'].data[:] = imagelist[ind]
 
         images = (hdu for hdu in infile if hdu.is_image)
-        for image in images:
-            name = image.name
-            if name.upper() in IGNORE_HDUS:
-                continue
+        valid_images = (image for image in images
+                if image.name.upper() not in IGNORE_HDUS)
 
+        for image in valid_images:
+            name = image.name
             sorted_data = image.data[:, ind]
             infile[name].data = sorted_data[:]
 
