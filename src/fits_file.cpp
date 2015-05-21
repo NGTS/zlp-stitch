@@ -98,9 +98,6 @@ void FITSFile::addImage(const string &name, long nimages, long napertures) {
 
     fits_write_key(fptr, TSTRING, "EXTNAME", (char*)name.c_str(), NULL, &status);
     check();
-
-    fits_flush_file(fptr, &status);
-    check();
 }
 
 vector<pair<string, ColumnDefinition> > FITSFile::column_description() {
@@ -231,7 +228,5 @@ void FITSFile::writeImageSubset(const vector<double> &data, long start_image, co
     long fpixel[] = { start_image + 1, 1 };
     long lpixel[] = { start_image + dim.nimages, dim.napertures };
     fits_write_subset(fptr, TDOUBLE, fpixel, lpixel, (double*)&data[0], &status);
-    check();
-    fits_flush_file(fptr, &status);
     check();
 }
