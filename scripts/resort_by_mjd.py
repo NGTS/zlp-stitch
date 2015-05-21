@@ -42,7 +42,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    description = 'Sort a summary file in place'
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('filename')
     parser.add_argument('-f', '--force', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
