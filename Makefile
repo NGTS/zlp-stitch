@@ -7,7 +7,7 @@ RUN := zlp-stitch
 CXX := icpc
 CFLAGS := -I/usr/local/tclap/include -I/usr/local/cfitsio/include -Iinclude
 LDFLAGS := -L/usr/local/cfitsio/lib -lcfitsio
-COMMON := -g -Wall -Wextra -O0 -std=c++11 -pthread
+COMMON := -g -Wall -Wextra -O2 -std=c++11 -pthread
 
 all: $(RUN)
 
