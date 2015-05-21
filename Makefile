@@ -16,3 +16,8 @@ $(RUN): $(OBJECTS)
 
 %.o: %.cpp $(HEADERS) Makefile
 	$(CXX) -c $< -o $@ $(CFLAGS) $(COMMON)
+
+.PHONY: clean
+
+clean:
+	rm -f src/*.o $(RUN)
