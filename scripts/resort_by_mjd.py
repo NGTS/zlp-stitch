@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import division, print_function, absolute_import
+import argparse
+import logging
+from astropy.io import fits
+import numpy as np
+
+
+logging.basicConfig(
+    level='INFO', format='%(levelname)7s %(message)s')
+logger = logging.getLogger(__name__)
+
+
+def main(args):
+    if args.verbose:
+        logger.setLevel('DEBUG')
+    logger.debug(args)
+
+    if not args.force:
+        raise RuntimeError(
+                'To actually change the file, the -f/--force argument is required')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename')
+    parser.add_argument('-f', '--force', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    main(parser.parse_args())
