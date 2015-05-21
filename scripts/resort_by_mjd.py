@@ -13,15 +13,17 @@ logger = logging.getLogger(__name__)
 IGNORE_HDUS = {'PRIMARY', 'CASUDET'}
 
 
+def is_file_sorted(filename):
+    with fits.open(filename) as infile:
+        imagelist = infile['imagelist'].data
+        tmid = imagelist['tmid']
+        return (tmid == np.sort(tmid)).all()
+
 def resort(filename):
     logger.info('Sorting %s', filename)
     with fits.open(filename) as infile:
         imagelist = infile['imagelist'].data
         tmid = imagelist['tmid']
-        if (tmid == np.sort(tmid)).all():
-            logger.info(' File already sorted')
-            return
-
         ind = np.argsort(tmid)
 
     logger.debug('Opening file for updating')
@@ -44,6 +46,10 @@ def main(args):
     if args.verbose:
         logger.setLevel('DEBUG')
     logger.debug(args)
+
+    if is_file_sorted(args.filename):
+        logger.info('File %s is sorted', args.filename)
+        exit(0)
 
     if not args.force:
         raise RuntimeError(
