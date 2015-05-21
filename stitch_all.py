@@ -10,6 +10,7 @@ import re
 from collections import defaultdict
 from astropy.io import fits
 import sys
+import joblib
 
 logger = setup_logging('stitch-all')
 
@@ -20,6 +21,8 @@ CHOSEN_CAMERAS = {802, 805, 806}
 
 LOGDIR = os.environ.get('LOGDIR', os.path.expanduser('~/var/log'))
 
+
+memory = joblib.Memory(cachedir='.tmp')
 
 def photom_file_name(path):
     cmd = map(str, ['find', path, '-name', 'output.fits'])
