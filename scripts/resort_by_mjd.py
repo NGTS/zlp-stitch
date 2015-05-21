@@ -18,6 +18,10 @@ def resort(filename):
     with fits.open(filename) as infile:
         imagelist = infile['imagelist'].data
         tmid = imagelist['tmid']
+        if (tmid == np.sort(tmid)).all():
+            logger.info(' File already sorted')
+            return
+
         ind = np.argsort(tmid)
 
     logger.debug('Opening file for updating')
