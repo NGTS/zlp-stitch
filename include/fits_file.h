@@ -38,6 +38,9 @@ struct FITSFile {
     int colnum(const std::string &name);
     long nimages();
 
+    std::vector<double> readWholeImage();
+    void writeImageSubset(const std::vector<double> &data, long start_image, const ImageDimensions &dim);
+
     std::vector<std::pair<std::string, ColumnDefinition> > column_description();
 
     void addImage(const std::string &name, long nimages, long napertures);

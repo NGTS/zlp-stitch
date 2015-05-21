@@ -155,10 +155,20 @@ struct FitsUpdater {
     }
 
     void updateImages(FITSFile &f) {
-        /* for (auto image: image_names) { */
-        /*     f.toHDU(image); */
-        /*     outfile->toHDU(image); */
-        /* } */
+        for (auto image: image_names) {
+            outfile->toHDU(image);
+            outfile->check();
+            f.toHDU(image);
+            if (f.status == BAD_HDU_NUM) {
+                f.status = 0;
+                fits_clear_errmsg();
+            } else {
+                cout << "Copying image " << image << endl;
+                vector<double> imageData = f.readWholeImage();
+                outfile->writeImageSubset(imageData, currentImage, f.imageDimensions());
+            }
+
+        }
     }
 
     void updateCatalogue(FITSFile &f) {

@@ -61,12 +61,10 @@ void FITSFile::check() {
 
 void FITSFile::toHDU(const string &name) {
     fits_movnam_hdu(fptr, ANY_HDU, (char*)name.c_str(), 0, &status);
-    check();
 }
 
 void FITSFile::toHDU(int index) {
     fits_movabs_hdu(fptr, index + 1, NULL, &status);
-    check();
 }
 
 int FITSFile::colnum(const string &name) {
@@ -214,4 +212,26 @@ void addToStringColumn(FITSFile &source, FITSFile *dest, long nrows, long start,
     for (int i=0; i<nrows; i++) {
         delete cptr[i];
     }
+}
+
+vector<double> FITSFile::readWholeImage() {
+    ImageDimensions dim = imageDimensions();
+    vector<double> out(dim.nimages * dim.napertures);
+    long fpixel[] = { 1, 1 };
+    long lpixel[] = { dim.nimages, dim.napertures };
+    long inc[] = {1, 1};
+
+    fits_read_subset(fptr, TDOUBLE, fpixel, lpixel, inc, NULL, &out[0], NULL, &status);
+    check();
+
+    return out;
+}
+
+void FITSFile::writeImageSubset(const vector<double> &data, long start_image, const ImageDimensions &dim) {
+    long fpixel[] = { start_image + 1, 1 };
+    long lpixel[] = { start_image + dim.nimages, dim.napertures };
+    fits_write_subset(fptr, TDOUBLE, fpixel, lpixel, (double*)&data[0], &status);
+    check();
+    fits_flush_file(fptr, &status);
+    check();
 }
