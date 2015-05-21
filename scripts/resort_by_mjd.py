@@ -45,6 +45,8 @@ def main(args):
         raise RuntimeError(
             'To actually change the file, the -f/--force argument is required')
 
+    resort(args.filename)
+
 
 if __name__ == '__main__':
     description = 'Sort a summary file in place'
