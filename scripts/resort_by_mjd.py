@@ -27,7 +27,7 @@ def resort(filename):
 
         images = (hdu for hdu in infile if hdu.is_image)
         valid_images = (image for image in images
-                if image.name.upper() not in IGNORE_HDUS)
+                        if image.name.upper() not in IGNORE_HDUS)
 
         for image in valid_images:
             logger.info(' Sorting %s', image.name)
