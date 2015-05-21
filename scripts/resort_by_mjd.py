@@ -12,13 +12,24 @@ logging.basicConfig(
     level='INFO', format='%(levelname)7s %(message)s')
 logger = logging.getLogger(__name__)
 
+IGNORE_HDUS = {'PRIMARY', 'CASUDET'}
 def resort(filename):
     with fits.open(filename, mode='update') as infile:
         imagelist = infile['imagelist'].data
         tmid = imagelist['tmid']
         ind = np.argsort(tmid)
 
-        infile['imagelist'].data = imagelist[ind]
+        infile['imagelist'].data[:] = imagelist[ind]
+
+        images = (hdu for hdu in infile if hdu.is_image)
+        for image in images:
+            name = image.name
+            if name.upper() in IGNORE_HDUS:
+                continue
+
+            sorted_data = image.data[:, ind]
+            infile[name].data = sorted_data[:]
+
 
 
 def main(args):
