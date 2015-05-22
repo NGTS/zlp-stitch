@@ -1,0 +1,3 @@
+TCLAP := /usr/local
+CFITSIO := /usr/local
+CXX := g++-5
