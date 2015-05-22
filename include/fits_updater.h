@@ -7,7 +7,9 @@
 #include <set>
 #include <vector>
 
-#include "fits_file.h"
+#include "util.h"
+
+struct FITSFile;
 
 struct FitsUpdater {
     FitsUpdater(

@@ -7,18 +7,7 @@
 #include <map>
 #include <vector>
 
-struct ImageDimensions {
-    long nimages, napertures;
-};
-
-struct ColumnDefinition {
-    long repeat, width;
-    int type;
-};
-
-struct MJDRange {
-    double min, max;
-};
+#include "util.h"
 
 struct FITSFile {
     fitsfile *fptr;

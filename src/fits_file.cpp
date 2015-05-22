@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 
+
 using namespace std;
 
 FITSFile::FITSFile(const string &filename) : FITSFile() {

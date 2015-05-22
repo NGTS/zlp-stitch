@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fitsio.h>
 
+#include "fits_file.h"
+
 using namespace std;
 
 FitsUpdater::FitsUpdater(const ImageDimensions &dim,
