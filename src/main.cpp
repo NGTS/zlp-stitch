@@ -102,8 +102,8 @@ struct FitsUpdater {
             const map<string, ColumnDefinition> &imagelist_columns, 
             const map<string, ColumnDefinition> &catalogue_columns,
             const set<string> image_names) :
-    dimensions(dim), imagelist_columns(imagelist_columns), catalogue_columns(catalogue_columns),
-    image_names(image_names), outfile(NULL), currentImage(0) {}
+    outfile(NULL), dimensions(dim), imagelist_columns(imagelist_columns), catalogue_columns(catalogue_columns),
+    image_names(image_names), currentImage(0) {}
     
     
     void updateImagelist(FITSFile &f) {

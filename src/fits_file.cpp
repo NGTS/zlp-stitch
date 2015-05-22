@@ -230,3 +230,56 @@ void FITSFile::writeImageSubset(const vector<double> &data, long start_image, co
     fits_write_subset(fptr, TDOUBLE, fpixel, lpixel, (double*)&data[0], &status);
     check();
 }
+
+template<>
+std::vector<double> readColumn<double>(FITSFile &f, long nrows, int colnum) {
+    std::vector<double> data(nrows);
+    fits_read_col(f.fptr, TDOUBLE, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template<>
+std::vector<float> readColumn<float>(FITSFile &f, long nrows, int colnum) {
+    std::vector<float> data(nrows);
+    fits_read_col(f.fptr, TFLOAT, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template<>
+std::vector<int> readColumn<int>(FITSFile &f, long nrows, int colnum) {
+    std::vector<int> data(nrows);
+    fits_read_col(f.fptr, TINT, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template<>
+std::vector<long> readColumn<long>(FITSFile &f, long nrows, int colnum) {
+    std::vector<long> data(nrows);
+    fits_read_col(f.fptr, TLONG, colnum, 1, 1, nrows, NULL, &data[0], NULL, &f.status);
+    return data;
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<double> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TDOUBLE, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<int> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TINT, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<long> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TLONG, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
+template <>
+void writeColumn(FITSFile *f, std::vector<float> &data, long start, int colnum) {
+    fits_write_col(f->fptr, TFLOAT, colnum, start + 1, 1, data.size(), &data[0], &f->status);
+    f->check();
+}
+
