@@ -1,0 +1,3 @@
+TCLAP := /usr/local/tclap
+CFITSIO := /usr/local/cfitsio
+CXX := icpc
