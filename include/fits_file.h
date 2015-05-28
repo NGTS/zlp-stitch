@@ -12,6 +12,7 @@
 struct FITSFile {
     fitsfile *fptr;
     int status;
+    std::string filename;
 
     FITSFile(fitsfile *fptr, int status) : fptr(fptr), status(status) {}
     FITSFile(fitsfile *fptr) : FITSFile(fptr, 0) {}

@@ -111,6 +111,7 @@ void stitch(const vector<string> &files, const string &output) {
     FitsUpdater updater(image_dimensions, imagelist_columns, catalogue_columns,
                         image_names);
     updater.render(files, output);
+    cout << "Complete" << endl;
 }
 
 int main(int argc, char *argv[]) {

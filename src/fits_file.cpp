@@ -11,6 +11,7 @@
 using namespace std;
 
 FITSFile::FITSFile(const string &filename) : FITSFile() {
+    this->filename = filename;
     fits_open_file(&fptr, filename.c_str(), READONLY, &status);
     check();
 }
@@ -20,6 +21,7 @@ FITSFile *FITSFile::createFile(const string &filename) {
     ss << "!" << filename;
 
     FITSFile *f = new FITSFile();
+    f->filename = filename;
     fits_create_file(&f->fptr, ss.str().c_str(), &f->status);
     f->check();
 

@@ -72,7 +72,7 @@ void FitsUpdater::updateImages(FITSFile &f) {
             f.status = 0;
             fits_clear_errmsg();
         } else {
-            cout << "Copying image " << image << endl;
+            cout << "Copying image " << image << " from " << f.filename << endl;
             vector<double> imageData = f.readWholeImage();
             outfile->writeImageSubset(imageData, currentImage,
                                       f.imageDimensions());
