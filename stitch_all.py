@@ -123,7 +123,7 @@ def main(args):
     mapping = build_field_camera_mapping()
     for key in mapping:
         field, camera_id = key
-        spawn_job(field=field, camera_id=camera_id, files=mapping[key])
+        spawn_job(field=field, camera_id=camera_id, files=sorted(mapping[key]))
 
 
 if __name__ == '__main__':
