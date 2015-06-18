@@ -8,3 +8,4 @@ venv
 *.o
 zlp-stitch
 *.dSYM
+output
