@@ -11,6 +11,7 @@ from collections import defaultdict
 from astropy.io import fits
 import sys
 import joblib
+import json
 
 logger = setup_logging('stitch-all')
 
@@ -21,8 +22,8 @@ CHOSEN_CAMERAS = {802, 805, 806}
 
 LOGDIR = os.environ.get('LOGDIR', os.path.expanduser('~/var/log'))
 
-
 memory = joblib.Memory(cachedir='.tmp')
+
 
 def photom_file_name(path):
     cmd = map(str, ['find', path, '-name', 'output.fits'])
@@ -68,12 +69,6 @@ def get_available_field_cameras():
     return (f for f in get_all_field_cameras() if valid(f))
 
 
-def summarise(mapping):
-    logger.debug('Collected %s', mapping)
-    for key in mapping:
-        logger.info('%s => %d files', key, len(mapping[key]))
-
-
 def build_zlp_stitch_command(field, camera_id, files):
     binary_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'zlp-stitch'))
     output_path = os.path.join('/', 'ngts', 'pipedev', 'ParanalOutput', 'per_field')
@@ -103,16 +98,56 @@ def spawn_job(field, camera_id, files):
     sp.check_call(command_string, env=qsub_env)
 
 
+class Mapping(object):
+
+    join_char = '@'
+
+    def __init__(self):
+        self._data = defaultdict(list)
+
+    def append(self, key, value):
+        self._data[key].append(value)
+
+    def summarise(self):
+        logger.debug('Collected %s', self._data)
+        for key in self._data:
+            logger.info('%s => %d files', key, len(self._data[key]))
+
+    def to_file(self, filename):
+        out = {}
+        for key in self._data:
+            key_str = self.join_char.join(map(str, key))
+            out[key_str] = self._data[key]
+
+        with open(filename, 'w') as outfile:
+            json.dump(out, outfile, indent=2)
+
+    @classmethod
+    def from_file(cls, filename):
+        data = {}
+
+        with open(filename) as infile:
+            raw = json.load(infile)
+
+        for key in raw:
+            field, camera_id = key.split(cls.join_char)
+            camera_id = int(camera_id)
+            data[(field, camera_id)] = raw[key]
+
+        self = cls()
+        self._data.update(data)
+        return self
+
+
 def build_field_camera_mapping():
-    mapping = defaultdict(list)
+    mapping = Mapping()
     for path in get_available_field_cameras():
         logger.info('Building {}'.format(path))
         match = regex.search(path)
         field = match.group('field')
         camera_id = int(match.group('camera_id'))
-        mapping[(field, camera_id)].append(photom_file_name(path))
+        mapping.append(key=(field, camera_id), value=photom_file_name(path))
 
-    summarise(mapping)
     return mapping
 
 
