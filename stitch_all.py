@@ -138,6 +138,12 @@ class Mapping(object):
         self._data.update(data)
         return self
 
+    def __iter__(self):
+        return iter(self._data)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
 
 def build_field_camera_mapping():
     mapping = Mapping()
@@ -155,15 +161,32 @@ def main(args):
     if args.verbose:
         logger.setLevel('DEBUG')
 
-    mapping = build_field_camera_mapping()
-    for key in mapping:
-        field, camera_id = key
-        spawn_job(field=field, camera_id=camera_id, files=sorted(mapping[key]))
+    if args.mapping is not None:
+        mapping = Mapping.from_file(args.mapping)
+    else:
+        mapping = build_field_camera_mapping()
+
+    mapping.summarise()
+
+    if args.save_mapping is not None:
+        logger.debug('Rendering mapping to file %s', args.save_mapping)
+        mapping.to_file(args.save_mapping)
+
+    if args.run:
+        for key in mapping:
+            field, camera_id = key
+            spawn_job(field=field, camera_id=camera_id, files=sorted(mapping[key]))
 
 
 if __name__ == '__main__':
     description = '''Stitch all available NGTS observations together for a single
     field and camera'''
+
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
+    parser.add_argument('-m', '--mapping', required=False, help='Pre-computed mapping')
+    parser.add_argument('-r', '--run', action='store_true', help='Spawn jobs')
+    parser.add_argument('-s', '--save-mapping',
+                        required=False,
+                        help='Save mapping information')
     main(parser.parse_args())
