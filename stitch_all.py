@@ -84,7 +84,7 @@ def build_qsub_command(field, camera_id):
     name = 'stitch-{field}-{camera_id}'.format(field=field, camera_id=camera_id)
     log_name = os.path.join(LOGDIR, '{}.log'.format(name))
     return map(str, ['/usr/local/sge/bin/lx-amd64/qsub', '-N', name, '-j', 'yes', '-o',
-                     log_name, '-b', 'y', '-pe', 'parallel', 1])
+                     log_name, '-b', 'y', '-pe', 'parallel', 24])
 
 
 def spawn_job(field, camera_id, files):
