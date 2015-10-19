@@ -94,10 +94,6 @@ set<string> get_image_names(const vector<string> &files) {
         }
     }
 
-    for (auto value : to_skip) {
-        cout << value << endl;
-    }
-
     for (auto filename : files) {
         int nhdu = -1;
         FITSFile source(filename);
