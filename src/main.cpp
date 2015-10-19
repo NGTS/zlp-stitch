@@ -86,10 +86,10 @@ set<string> get_image_names(const vector<string> &files) {
     for (int i = 1; i < 14; i++) {
         if (i != 2) {
             stringstream ss;
-            ss << "FLUX" << i << endl;
+            ss << "FLUX_" << i;
             to_skip.insert(ss.str());
             ss.str("");
-            ss << "ERROR" << i << endl;
+            ss << "ERROR_" << i;
             to_skip.insert(ss.str());
         }
     }
