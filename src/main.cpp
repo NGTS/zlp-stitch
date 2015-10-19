@@ -109,10 +109,14 @@ set<string> get_image_names(const vector<string> &files) {
                 fits_read_key(source.fptr, TSTRING, "EXTNAME", buf, NULL,
                               &source.status);
                 source.check();
-                out.insert(buf);
+
+                if (!in_set(buf, to_skip)) {
+                    out.insert(buf);
+                }
             }
         }
     }
+
     return out;
 }
 
