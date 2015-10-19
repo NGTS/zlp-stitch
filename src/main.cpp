@@ -64,9 +64,8 @@ map<string, ColumnDefinition> get_columns(const vector<string> &files,
     return out;
 }
 
-template <typename T> bool in_set(const T &value, const set<T> &s) {
-    return s.find(value) != s.end();
-}
+/* Macro for set inclusion */
+#define in_set(V, S) ((S).find((V)) != (S).end())
 
 vector<string> sort_files_by_mjd_range(const vector<string> &files) {
     auto tmp = files;
