@@ -85,9 +85,11 @@ void FitsUpdater::updateCatalogue(FITSFile &f) {
     f.toHDU("CATALOGUE");
     outfile->toHDU("CATALOGUE");
     for (auto col : catalogue_columns) {
+        cout << "Updating catalogue column " << col.first << endl;
         fits_get_colnum(f.fptr, CASEINSEN, (char *)col.first.c_str(),
                         &sourcecol, &f.status);
         if (f.status != COL_NOT_FOUND) {
+            cout << "Copying column information" << endl;
             int destcol = outfile->colnum(col.first);
             fits_copy_col(f.fptr, outfile->fptr, sourcecol, destcol, false,
                           &outfile->status);
@@ -109,9 +111,11 @@ void FitsUpdater::render(const vector<string> &files, const string &output) {
         outfile->addImage(name, dimensions);
     }
 
+    cout << "Updating catalogue from first file: " << files[0] << endl;
     FITSFile first(files[0]);
     updateCatalogue(first);
 
+    cout << "Reading in data from images" << endl;
     for (auto filename : files) {
         FITSFile source(filename);
         updateImagelist(source);
