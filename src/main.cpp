@@ -64,6 +64,10 @@ map<string, ColumnDefinition> get_columns(const vector<string> &files,
     return out;
 }
 
+template <typename T> bool in_set(const T &value, const set<T> &s) {
+    return s.find(value) != s.end();
+}
+
 vector<string> sort_files_by_mjd_range(const vector<string> &files) {
     auto tmp = files;
     sort(tmp.begin(), tmp.end(), [](const string &a, const string &b) -> bool {
@@ -76,6 +80,24 @@ vector<string> sort_files_by_mjd_range(const vector<string> &files) {
 
 set<string> get_image_names(const vector<string> &files) {
     set<string> out;
+    set<string> to_skip;
+
+    /* Build skip list */
+    for (int i = 1; i < 14; i++) {
+        if (i != 2) {
+            stringstream ss;
+            ss << "FLUX" << i << endl;
+            to_skip.insert(ss.str());
+            ss.str("");
+            ss << "ERROR" << i << endl;
+            to_skip.insert(ss.str());
+        }
+    }
+
+    for (auto value : to_skip) {
+        cout << value << endl;
+    }
+
     for (auto filename : files) {
         int nhdu = -1;
         FITSFile source(filename);
