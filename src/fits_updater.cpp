@@ -3,6 +3,7 @@
 #include <fitsio.h>
 
 #include "fits_file.h"
+#include "time_utils.h"
 
 using namespace std;
 
@@ -56,7 +57,7 @@ void FitsUpdater::updateImagelist(FITSFile &f) {
                               dest_colnum, column.second);
             break;
         default:
-            cout << "Not implemented: " << column.first << " "
+            log << "Not implemented: " << column.first << " "
                  << column.second.type << endl;
             break;
         }
@@ -71,7 +72,7 @@ void FitsUpdater::updateImage(FITSFile &f, const string &image) {
         f.status = 0;
         fits_clear_errmsg();
     } else {
-        cout << "Copying image " << image << " from " << f.filename << endl;
+        log << "Copying image " << image << " from " << f.filename << endl;
         vector<double> imageData = f.readWholeImage();
         outfile->writeImageSubset(imageData, currentImage,
                                     f.imageDimensions());
@@ -89,11 +90,11 @@ void FitsUpdater::updateCatalogue(FITSFile &f) {
     f.toHDU("CATALOGUE");
     outfile->toHDU("CATALOGUE");
     for (auto col : catalogue_columns) {
-        cout << "Updating catalogue column " << col.first << endl;
+        log << "Updating catalogue column " << col.first << endl;
         fits_get_colnum(f.fptr, CASEINSEN, (char *)col.first.c_str(),
                         &sourcecol, &f.status);
         if (f.status != COL_NOT_FOUND) {
-            cout << "Copying column information" << endl;
+            log << "Copying column information" << endl;
             int destcol = outfile->colnum(col.first);
             fits_copy_col(f.fptr, outfile->fptr, sourcecol, destcol, false,
                           &outfile->status);

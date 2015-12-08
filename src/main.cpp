@@ -8,6 +8,7 @@
 
 #include "fits_file.h"
 #include "fits_updater.h"
+#include "time_utils.h"
 
 using namespace std;
 
@@ -123,7 +124,7 @@ set<string> get_image_names(const vector<string> &files) {
 void stitch(const vector<string> &files, const string &output) {
     auto sorted_files = sort_files_by_mjd_range(files);
     auto image_dimensions = get_image_dimensions(sorted_files);
-    cout << "Image dimensions => nimages: " << image_dimensions.nimages
+    log << "Image dimensions => nimages: " << image_dimensions.nimages
          << ", napertures: " << image_dimensions.napertures << endl;
     auto imagelist_columns = get_columns(sorted_files, "IMAGELIST");
     auto catalogue_columns = get_columns(sorted_files, "CATALOGUE");
@@ -132,7 +133,7 @@ void stitch(const vector<string> &files, const string &output) {
     FitsUpdater updater(image_dimensions, imagelist_columns, catalogue_columns,
                         image_names);
     updater.render(files, output);
-    cout << "Complete" << endl;
+    log << "Complete" << endl;
 }
 
 int main(int argc, char *argv[]) {

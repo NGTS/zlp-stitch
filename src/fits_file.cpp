@@ -7,6 +7,8 @@
 #include <sstream>
 #include <algorithm>
 
+#include "time_utils.h"
+
 
 using namespace std;
 
@@ -94,7 +96,7 @@ ImageDimensions FITSFile::imageDimensions() {
 }
 
 void FITSFile::addImage(const string &name, long nimages, long napertures) {
-    cout << "Adding image " << name << endl;
+    log << "Adding image " << name << endl;
     long naxes[] = {nimages, napertures};
     fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status);
     check();
@@ -163,7 +165,7 @@ void FITSFile::addBinaryTable(
             case TSTRING:
                 break;
             default:
-                cout << "No string conversion for column " << row.first
+                log << "No string conversion for column " << row.first
                      << ", type " << row.second.type << endl;
                 break;
             }
