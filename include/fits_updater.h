@@ -20,6 +20,7 @@ struct FitsUpdater {
     ~FitsUpdater();
 
     void updateImagelist(FITSFile &f);
+    void updateImage(FITSFile &f, const std::string &image);
     void updateImages(FITSFile &f);
     void updateCatalogue(FITSFile &f);
     void render(const std::vector<std::string> &files,

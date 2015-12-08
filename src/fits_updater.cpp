@@ -63,20 +63,24 @@ void FitsUpdater::updateImagelist(FITSFile &f) {
     }
 }
 
+void FitsUpdater::updateImage(FITSFile &f, const string &image) {
+    outfile->toHDU(image);
+    outfile->check();
+    f.toHDU(image);
+    if (f.status == BAD_HDU_NUM) {
+        f.status = 0;
+        fits_clear_errmsg();
+    } else {
+        cout << "Copying image " << image << " from " << f.filename << endl;
+        vector<double> imageData = f.readWholeImage();
+        outfile->writeImageSubset(imageData, currentImage,
+                                    f.imageDimensions());
+    }
+}
+
 void FitsUpdater::updateImages(FITSFile &f) {
     for (auto image : image_names) {
-        outfile->toHDU(image);
-        outfile->check();
-        f.toHDU(image);
-        if (f.status == BAD_HDU_NUM) {
-            f.status = 0;
-            fits_clear_errmsg();
-        } else {
-            cout << "Copying image " << image << " from " << f.filename << endl;
-            vector<double> imageData = f.readWholeImage();
-            outfile->writeImageSubset(imageData, currentImage,
-                                      f.imageDimensions());
-        }
+        updateImage(f, image);
     }
 }
 
