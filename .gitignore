@@ -9,3 +9,4 @@ venv
 zlp-stitch
 *.dSYM
 output
+.deps
