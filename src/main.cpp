@@ -122,8 +122,12 @@ set<string> get_image_names(const vector<string> &files) {
 }
 
 void stitch(const vector<string> &files, const string &output) {
+    log << "Sorting files by mjd" << endl;
     auto sorted_files = sort_files_by_mjd_range(files);
+
+    log << "Fetching image dimensions" << endl;
     auto image_dimensions = get_image_dimensions(sorted_files);
+
     log << "Image dimensions => nimages: " << image_dimensions.nimages
          << ", napertures: " << image_dimensions.napertures << endl;
     auto imagelist_columns = get_columns(sorted_files, "IMAGELIST");

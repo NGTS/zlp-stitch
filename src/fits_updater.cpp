@@ -109,23 +109,30 @@ void FitsUpdater::updateCatalogue(FITSFile &f) {
 void FitsUpdater::render(const vector<string> &files, const string &output) {
 
     outfile = FITSFile::createFile(output);
-    outfile->addBinaryTable("IMAGELIST", imagelist_columns, dimensions.nimages);
+
+    log << "Updating catalogue from first file: " << files[0] << endl;
     outfile->addBinaryTable("CATALOGUE", catalogue_columns,
                             dimensions.napertures);
-    for (auto name : image_names) {
-        outfile->addImage(name, dimensions);
-    }
-
-    cout << "Updating catalogue from first file: " << files[0] << endl;
     FITSFile first(files[0]);
     updateCatalogue(first);
 
-    cout << "Reading in data from images" << endl;
+
+    log << "Updating imagelist" << endl;
+    outfile->addBinaryTable("IMAGELIST", imagelist_columns, dimensions.nimages);
     for (auto filename : files) {
+        log << "Updating from " << filename << endl;
         FITSFile source(filename);
         updateImagelist(source);
-        updateImages(source);
         currentImage += source.nimages();
+    }
+
+    log << "Reading in data from images" << endl;
+    for (auto name : image_names) {
+        outfile->addImage(name, dimensions);
+        for (auto filename : files) {
+            FITSFile source(filename);
+            updateImage(source, name);
+        }
     }
 }
 
